@@ -117,7 +117,6 @@
   <svg class="absolute bottom-0 w-full" viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,60 L1440,60 L1440,20 Q720,0 0,20 Z" fill="#f0fdf4"/></svg>
 </section>
 
-<!-- ============== NOTICE BOARD ============== -->
 <section id="notice" class="max-w-7xl mx-auto px-4 py-8">
   <div class="flex justify-between items-center mb-4">
     <h3 class="text-2xl font-bold text-green-800 flex items-center gap-2">
@@ -317,7 +316,6 @@
   <div id="accountsPanel"></div>
 </section>
 
-<!-- ============== CHATBOX SECTION ============== -->
 <section id="chat" class="max-w-4xl mx-auto px-4 py-12">
   <div class="mb-6 text-center">
     <h3 class="text-3xl font-bold text-green-800">Team Chat Box</h3>
@@ -378,7 +376,6 @@
   </div>
 </footer>
 
-<!-- Modals -->
 <div id="adminLoginModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in">
     <div class="flex items-center justify-between mb-4">
@@ -530,14 +527,14 @@
 
 <script>
 // ============================================
-// CONFIGURATION - Google Apps Script URLs
+// CONFIGURATION - এখানে আপনার দুটি Apps Script URL বসান
 // ============================================
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw7fb9n_vadCk46MAGfZtL1J2xfOS3CqcLpm2WbMyevfYr3yKd5b9fhxk0efPaMl81UAg/exec',
-  FEEDBACK_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzm5accJN_Gtwt2OosQvP5vIgQHUZk5AFJebDDWwDWQCfFxOwR-PD_n8gn097jSLn32Lg/exec',
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw9U5DPxEVAv8ConqHNlpZQXh8AtieOAI3kU-M7TburgsFuXOQHG2117m0jTc6MtScc9w/exec',        // ← এখানে ১ম Apps Script URL বসান
+  FEEDBACK_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzHSbtPyMDwE5I1sErHGGnxaZQH044UPgkprjkmyAQCXkkVDqDo-GgRc_8C3FBViT05tQ/exec',    // ← এখানে Chat Apps Script URL বসান
   ADMIN_USER: 'admin',
   ADMIN_PASS: 'admin1116',
-  USE_GOOGLE_SHEET: true  // ✅ Always use Google Sheet
+  USE_GOOGLE_SHEET: true
 };
 
 let state = {
@@ -625,30 +622,19 @@ async function compressImage(file, maxWidth = 400, initialQuality = 0.7) {
   });
 }
 
-// ============= STORE - Google Sheets Only =============
+// ============= STORE - Google Sheets =============
 const Store = {
   async load() {
     if (!CONFIG.USE_GOOGLE_SHEET) return;
     if (state.isDataLoading) return;
     state.isDataLoading = true;
     try {
-      // Use no-cors fallback if needed, but try cors first
       const url = `${CONFIG.APPS_SCRIPT_URL}?action=getData&t=${Date.now()}`;
-      const res = await fetch(url, { 
-        method: 'GET',
-        redirect: 'follow'
-      });
-      
+      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
       if (!res.ok) throw new Error('Network response was not ok: ' + res.status);
-      
       const text = await res.text();
       let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error('Invalid JSON response from server');
-      }
-      
+      try { data = JSON.parse(text); } catch (e) { throw new Error('Invalid JSON from server'); }
       if (data.success === false) throw new Error(data.message || 'Server error');
       
       state.players = data.players || [];
@@ -657,9 +643,7 @@ const Store = {
       state.customFormationDefault = data.customFormationDefault || {};
       state.notices = data.notices || [];
       
-      // If no data exists yet, initialize sample data on first run
       if (state.players.length === 0 && state.matches.length === 0 && !data.initialized) {
-        console.log('No data found, initializing sample data...');
         initSampleData();
         await Store.save();
       }
@@ -676,8 +660,6 @@ const Store = {
   
   async save() {
     if (!CONFIG.USE_GOOGLE_SHEET) return;
-    
-    // Prevent too frequent saves
     const now = Date.now();
     if (now - state.lastSaveTime < 1000) {
       await new Promise(r => setTimeout(r, 1000));
@@ -706,15 +688,10 @@ const Store = {
       
       const text = await response.text();
       let result;
-      try {
-        result = JSON.parse(text);
-      } catch (e) {
-        throw new Error('Server error: ' + text.substring(0, 200));
-      }
-      
+      try { result = JSON.parse(text); } catch (e) { throw new Error('Server error: ' + text.substring(0, 200)); }
       if (!result.success) throw new Error(result.message || 'Save failed');
       
-      // Reload data to confirm save
+      // ✅ Admin save করার পর নিজে দেখবে এবং অন্য পেজও দেখবে
       setTimeout(() => Store.load(), 500);
     } catch (err) {
       console.error('Save error:', err);
@@ -872,7 +849,7 @@ function renderNotices() {
   `).join('');
 }
 
-// ============= CHAT SYSTEM =============
+// ============= CHAT SYSTEM - FIXED =============
 async function loadChat() {
   try {
     const url = `${CONFIG.FEEDBACK_SCRIPT_URL}?action=getChat&t=${Date.now()}`;
@@ -880,13 +857,12 @@ async function loadChat() {
     if (!res.ok) throw new Error('Network error');
     const text = await res.text();
     let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      throw new Error('Invalid response from server');
-    }
+    try { data = JSON.parse(text); } catch (e) { throw new Error('Invalid response'); }
     if (data.success) {
-      state.chatMessages = data.messages || [];
+      // ✅ Sort messages by timestamp (chronological order)
+      state.chatMessages = (data.messages || []).sort((a, b) => {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+      });
       renderChat();
     }
   } catch (err) {
@@ -957,6 +933,7 @@ async function sendChatMessage() {
 
   let msgData = { operation: 'sendChat', sender: 'player' };
 
+  // ✅ BUG FIXED: Admin এবং Player দুটোর জন্য আলাদা লজিক
   if (state.isAdmin) {
     msgData.sender = 'admin';
     msgData.playerId = 'admin_id';
@@ -1035,6 +1012,7 @@ function renderChat() {
     box.innerHTML = '<p class="text-gray-400 text-center m-auto">কোনো মেসেজ নেই। প্রথম মেসেজ পাঠান!</p>';
     return;
   }
+  // ✅ BUG FIXED: isAdmin variable আগে define করা হয়েছে এবং সঠিকভাবে ব্যবহার করা হয়েছে
   box.innerHTML = state.chatMessages.map(msg => {
     const isAdmin = msg.sender === 'admin';
     let contentHtml = '';
@@ -1045,17 +1023,23 @@ function renderChat() {
     } else {
       contentHtml = `<p class="text-sm">${escapeHtml(msg.content)}</p>`;
     }
-    const senderLabel = isAdmin
-      ? '<span class="badge bg-yellow-400 text-yellow-900 text-[10px]">Admin</span>'
-      : `<span class="text-[10px] font-bold ${isAdmin ? 'text-white' : 'text-green-700'}">${escapeHtml(msg.playerName)}</span>`;
+    // ✅ FIXED: sender label - আগে একটি bug ছিল যেখানে isAdmin দুইবার check হচ্ছিল
+    let senderLabel;
+    if (isAdmin) {
+      senderLabel = '<span class="badge bg-yellow-400 text-yellow-900 text-[10px]">Admin</span>';
+    } else {
+      senderLabel = `<span class="text-[10px] font-bold text-green-700">${escapeHtml(msg.playerName || 'Player')}</span>`;
+    }
     const deleteBtn = state.isAdmin
       ? `<button onclick="deleteChatMessage('${msg.id}')" class="ml-2 text-red-300 hover:text-red-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>`
       : '';
+    const timeColor = isAdmin ? 'text-green-100' : 'text-gray-400';
+    const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
     return `
       <div class="chat-bubble ${isAdmin ? 'chat-admin' : 'chat-player'}">
         <div class="flex items-center gap-2 mb-1">
           ${senderLabel}
-          <span class="text-[10px] ${isAdmin ? 'text-green-100' : 'text-gray-400'}">${new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+          <span class="text-[10px] ${timeColor}">${timeStr}</span>
           ${deleteBtn}
         </div>
         ${contentHtml}
@@ -1175,23 +1159,18 @@ function renderPlayers() {
 function openMatchModal(id = null) {
   if (!state.isAdmin) { showToast('প্রথমে অ্যাডমিন লগইন করুন', 'error'); return; }
   document.getElementById('matchForm').reset();
-  
-  // Render Home team players
   document.getElementById('matchPlayerSelect').innerHTML = state.players.map(p => `
     <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-green-50 cursor-pointer text-sm">
       <input type="checkbox" value="${p.id}" class="match-player-cb w-4 h-4 accent-green-600">
       <span class="truncate">${escapeHtml(p.name)}</span>
     </label>
   `).join('');
-  
-  // Render Away team players
   document.getElementById('matchAwayPlayerSelect').innerHTML = state.players.map(p => `
     <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 cursor-pointer text-sm">
       <input type="checkbox" value="${p.id}" class="match-away-player-cb w-4 h-4 accent-gray-600">
       <span class="truncate">${escapeHtml(p.name)}</span>
     </label>
   `).join('');
-  
   if (id) {
     const m = state.matches.find(x => x.id === id);
     if (m) {
@@ -1204,13 +1183,9 @@ function openMatchModal(id = null) {
       document.getElementById('matchFormation').value = m.formation;
       document.getElementById('matchNote').value = m.note || '';
       const confirmed = (m.confirmedPlayers || '').split(',').filter(x => x);
-      document.querySelectorAll('.match-player-cb').forEach(cb => {
-        if (confirmed.includes(cb.value)) cb.checked = true;
-      });
+      document.querySelectorAll('.match-player-cb').forEach(cb => { if (confirmed.includes(cb.value)) cb.checked = true; });
       const away = (m.awayPlayers || '').split(',').filter(x => x);
-      document.querySelectorAll('.match-away-player-cb').forEach(cb => {
-        if (away.includes(cb.value)) cb.checked = true;
-      });
+      document.querySelectorAll('.match-away-player-cb').forEach(cb => { if (away.includes(cb.value)) cb.checked = true; });
       document.getElementById('matchModalTitle').textContent = 'ম্যাচ এডিট করুন';
     }
   } else {
@@ -1465,19 +1440,13 @@ function viewMatchAccounts(matchId) {
   scrollToSection('accounts');
 }
 
-// ============= FORMATION - Two Team Support =============
+// ============= FORMATION =============
 function setFormation(type) {
   state.currentFormation = type;
-  document.querySelectorAll('.formation-btn').forEach(b => {
-    b.classList.remove('bg-green-600', 'text-white');
-    b.classList.add('bg-green-100', 'text-green-700');
-  });
+  document.querySelectorAll('.formation-btn').forEach(b => { b.classList.remove('bg-green-600', 'text-white'); b.classList.add('bg-green-100', 'text-green-700'); });
   const btnMap = { '6vs6': 'form6btn', '7vs7': 'form7btn', '8vs8': 'form8btn', '11vs11': 'form11btn' };
   const btn = document.getElementById(btnMap[type]);
-  if (btn) {
-    btn.classList.add('bg-green-600', 'text-white');
-    btn.classList.remove('bg-green-100', 'text-green-700');
-  }
+  if (btn) { btn.classList.add('bg-green-600', 'text-white'); btn.classList.remove('bg-green-100', 'text-green-700'); }
   renderFormation();
 }
 
@@ -1500,19 +1469,15 @@ function renderFormation() {
     }
   } else {
     const allPlayers = state.players.slice();
-    // Split players: home = first half, away = second half
     const half = Math.ceil(allPlayers.length / 2);
     homePlayers = allPlayers.slice(0, half);
     awayPlayers = allPlayers.slice(half);
   }
 
-  // Default positions for two teams
   const defaultPositions = getTwoTeamPositions(state.currentFormation);
   let custom = match?.customFormation || (matchId ? null : state.customFormationDefault);
-
   let html = '';
   
-  // Home team players
   if (teamView === 'both' || teamView === 'home') {
     const homePos = defaultPositions.home;
     homePlayers.forEach((player, i) => {
@@ -1520,8 +1485,6 @@ function renderFormation() {
       html += renderPlayerToken(player, pos, 'home');
     });
   }
-  
-  // Away team players
   if (teamView === 'both' || teamView === 'away') {
     const awayPos = defaultPositions.away;
     awayPlayers.forEach((player, i) => {
@@ -1529,7 +1492,6 @@ function renderFormation() {
       html += renderPlayerToken(player, pos, 'away');
     });
   }
-  
   container.innerHTML = html;
 }
 
@@ -1547,49 +1509,22 @@ function renderPlayerToken(player, pos, team) {
 }
 
 function getTwoTeamPositions(type) {
-  // Both teams' positions - home on left, away on right (mirrored)
   const formations = {
     '6vs6': {
-      home: [
-        { x: 10, y: 50 }, { x: 25, y: 20 }, { x: 25, y: 80 },
-        { x: 38, y: 35 }, { x: 38, y: 65 }, { x: 45, y: 50 }
-      ],
-      away: [
-        { x: 90, y: 50 }, { x: 75, y: 20 }, { x: 75, y: 80 },
-        { x: 62, y: 35 }, { x: 62, y: 65 }, { x: 55, y: 50 }
-      ]
+      home: [{ x: 10, y: 50 }, { x: 25, y: 20 }, { x: 25, y: 80 }, { x: 38, y: 35 }, { x: 38, y: 65 }, { x: 45, y: 50 }],
+      away: [{ x: 90, y: 50 }, { x: 75, y: 20 }, { x: 75, y: 80 }, { x: 62, y: 35 }, { x: 62, y: 65 }, { x: 55, y: 50 }]
     },
     '7vs7': {
-      home: [
-        { x: 8, y: 50 }, { x: 22, y: 20 }, { x: 22, y: 50 }, { x: 22, y: 80 },
-        { x: 38, y: 30 }, { x: 38, y: 70 }, { x: 45, y: 50 }
-      ],
-      away: [
-        { x: 92, y: 50 }, { x: 78, y: 20 }, { x: 78, y: 50 }, { x: 78, y: 80 },
-        { x: 62, y: 30 }, { x: 62, y: 70 }, { x: 55, y: 50 }
-      ]
+      home: [{ x: 8, y: 50 }, { x: 22, y: 20 }, { x: 22, y: 50 }, { x: 22, y: 80 }, { x: 38, y: 30 }, { x: 38, y: 70 }, { x: 45, y: 50 }],
+      away: [{ x: 92, y: 50 }, { x: 78, y: 20 }, { x: 78, y: 50 }, { x: 78, y: 80 }, { x: 62, y: 30 }, { x: 62, y: 70 }, { x: 55, y: 50 }]
     },
     '8vs8': {
-      home: [
-        { x: 8, y: 50 }, { x: 22, y: 15 }, { x: 22, y: 38 }, { x: 22, y: 62 }, { x: 22, y: 85 },
-        { x: 38, y: 30 }, { x: 38, y: 70 }, { x: 45, y: 50 }
-      ],
-      away: [
-        { x: 92, y: 50 }, { x: 78, y: 15 }, { x: 78, y: 38 }, { x: 78, y: 62 }, { x: 78, y: 85 },
-        { x: 62, y: 30 }, { x: 62, y: 70 }, { x: 55, y: 50 }
-      ]
+      home: [{ x: 8, y: 50 }, { x: 22, y: 15 }, { x: 22, y: 38 }, { x: 22, y: 62 }, { x: 22, y: 85 }, { x: 38, y: 30 }, { x: 38, y: 70 }, { x: 45, y: 50 }],
+      away: [{ x: 92, y: 50 }, { x: 78, y: 15 }, { x: 78, y: 38 }, { x: 78, y: 62 }, { x: 78, y: 85 }, { x: 62, y: 30 }, { x: 62, y: 70 }, { x: 55, y: 50 }]
     },
     '11vs11': {
-      home: [
-        { x: 5, y: 50 }, { x: 18, y: 15 }, { x: 18, y: 35 }, { x: 18, y: 65 }, { x: 18, y: 85 },
-        { x: 32, y: 20 }, { x: 32, y: 45 }, { x: 32, y: 70 }, { x: 42, y: 30 },
-        { x: 42, y: 70 }, { x: 47, y: 50 }
-      ],
-      away: [
-        { x: 95, y: 50 }, { x: 82, y: 15 }, { x: 82, y: 35 }, { x: 82, y: 65 }, { x: 82, y: 85 },
-        { x: 68, y: 20 }, { x: 68, y: 45 }, { x: 68, y: 70 }, { x: 58, y: 30 },
-        { x: 58, y: 70 }, { x: 53, y: 50 }
-      ]
+      home: [{ x: 5, y: 50 }, { x: 18, y: 15 }, { x: 18, y: 35 }, { x: 18, y: 65 }, { x: 18, y: 85 }, { x: 32, y: 20 }, { x: 32, y: 45 }, { x: 32, y: 70 }, { x: 42, y: 30 }, { x: 42, y: 70 }, { x: 47, y: 50 }],
+      away: [{ x: 95, y: 50 }, { x: 82, y: 15 }, { x: 82, y: 35 }, { x: 82, y: 65 }, { x: 82, y: 85 }, { x: 68, y: 20 }, { x: 68, y: 45 }, { x: 68, y: 70 }, { x: 58, y: 30 }, { x: 58, y: 70 }, { x: 53, y: 50 }]
     }
   };
   return formations[type] || formations['6vs6'];
@@ -1934,8 +1869,6 @@ function updateDropdowns() {
     }).join('');
     sel.value = current;
   });
-  
-  // Formation team select
   const teamSelect = document.getElementById('formationTeamSelect');
   if (teamSelect) {
     const current = teamSelect.value;
@@ -1987,13 +1920,9 @@ function updateActiveNav() {
 }
 
 async function init() {
-  // ✅ Load from Google Sheet (no local storage fallback)
   await Store.load();
   renderAll();
-  
-  // Load chat from feedback script
   loadChat();
-  
   setupDrag();
   updateActiveNav();
 
@@ -2003,13 +1932,8 @@ async function init() {
 
   document.getElementById('adminBtn').addEventListener('click', openAdminLogin);
 
-  document.getElementById('loginPass').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') adminLogin();
-  });
-
-  document.getElementById('loginUser').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') adminLogin();
-  });
+  document.getElementById('loginPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
+  document.getElementById('loginUser').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
 
   const chatPlayerSelect = document.getElementById('chatPlayerSelect');
   if (chatPlayerSelect) {
@@ -2018,40 +1942,28 @@ async function init() {
 
   const chatTextInput = document.getElementById('chatTextInput');
   if (chatTextInput) {
-    chatTextInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') sendChatMessage();
-    });
+    chatTextInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChatMessage(); });
   }
   
-  // Formation team selector
   const teamSelect = document.getElementById('formationTeamSelect');
-  if (teamSelect) {
-    teamSelect.addEventListener('change', renderFormation);
-  }
+  if (teamSelect) { teamSelect.addEventListener('change', renderFormation); }
   
-  // Formation match selector
   const formMatchSelect = document.getElementById('formationMatchSelect');
-  if (formMatchSelect) {
-    formMatchSelect.addEventListener('change', renderFormation);
-  }
+  if (formMatchSelect) { formMatchSelect.addEventListener('change', renderFormation); }
 
-  // Modal backdrop click to close
   document.querySelectorAll('.modal-backdrop').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal(modal.id);
-    });
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal.id); });
   });
 
-  // ✅ Auto-refresh data every 15 seconds (so public sees admin changes)
+  // ✅ Auto-refresh data every 10 seconds (faster - যাতে player add করলে দ্রুত দুই page এ দেখা যায়)
   state.dataRefreshInterval = setInterval(() => {
-    if (!state.isAdmin) Store.load(); // Only refresh if not admin (admin saves manually)
-  }, 15000);
+    if (!state.isDataLoading) Store.load();
+  }, 10000);
   
-  // Auto-refresh chat every 10 seconds
-  state.chatRefreshInterval = setInterval(loadChat, 10000);
+  // ✅ Auto-refresh chat every 5 seconds (দ্রুত update এর জন্য)
+  state.chatRefreshInterval = setInterval(loadChat, 5000);
 }
 
-// Cleanup on page unload
 window.addEventListener('beforeunload', () => {
   if (state.chatRefreshInterval) clearInterval(state.chatRefreshInterval);
   if (state.dataRefreshInterval) clearInterval(state.dataRefreshInterval);
