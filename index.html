@@ -54,6 +54,8 @@
   .modal-show { display: flex !important; }
   .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 200; display: flex; align-items: center; justify-content: center; }
   .spinner { width: 50px; height: 50px; border: 5px solid #dcfce7; border-top-color: #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+  .notif-pulse { animation: pulse 1s ease-in-out infinite; }
 </style>
 </head>
 <body class="hex-pattern">
@@ -85,7 +87,10 @@
       <a href="#formation" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-green-700 transition">ফরমেশন</a>
       <a href="#schedule" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-green-700 transition">সিডিউল</a>
       <a href="#accounts" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-green-700 transition">হিসাব</a>
-      <a href="#chat" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-green-700 transition">Chat</a>
+      <a href="#chat" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-green-700 transition relative">
+        Chat
+        <span class="chat-notif-badge hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 notif-pulse">0</span>
+      </a>
     </nav>
     <div class="flex items-center gap-2">
       <button id="adminBtn" class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
@@ -104,7 +109,10 @@
     <a href="#formation" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700">ফরমেশন</a>
     <a href="#schedule" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700">সিডিউল</a>
     <a href="#accounts" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700">হিসাব</a>
-    <a href="#chat" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700">Chat</a>
+    <a href="#chat" class="nav-link px-4 py-2 rounded-lg text-sm font-medium text-gray-700 relative">
+      Chat
+      <span class="chat-notif-badge hidden absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 notif-pulse">0</span>
+    </a>
   </div>
 </header>
 
@@ -316,35 +324,69 @@
   <div id="accountsPanel"></div>
 </section>
 
+<!-- ============= CHAT SECTION ============= -->
 <section id="chat" class="max-w-4xl mx-auto px-4 py-12">
   <div class="mb-6 text-center">
     <h3 class="text-3xl font-bold text-green-800">Team Chat Box</h3>
-    <p class="text-gray-500 mt-1">খেলোয়াড় সিলেক্ট করে মেসেজ, ছবি বা পিডিএফ পাঠান। এডমিন রিপ্লাই দিবে।</p>
+    <p class="text-gray-500 mt-1">নাম সিলেক্ট করে পাসওয়ার্ড দিন। মেসেজ, ইমোজি, স্টিকার পাঠান। রিপ্লাই দিন।</p>
   </div>
   <div class="bg-white rounded-2xl border border-green-100 shadow-lg overflow-hidden flex flex-col" style="height: 70vh;">
+    <!-- Chat Header -->
     <div class="bg-green-700 text-white p-4 flex justify-between items-center">
       <h4 class="font-bold flex items-center gap-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg> 
         Team Chat
+        <span class="chat-notif-badge hidden bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 notif-pulse">0</span>
       </h4>
-      <select id="chatPlayerSelect" class="px-3 py-1.5 rounded-lg text-gray-800 text-sm font-medium border-none">
-        <option value="">Select Your Name</option>
-      </select>
+      <div id="chatStatusArea">
+        <button onclick="openChatUnlock()" class="bg-white text-green-700 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+          Unlock Chat
+        </button>
+      </div>
     </div>
+    <!-- Chat Messages -->
     <div id="chatBox" class="flex-1 overflow-y-auto p-4 chat-container bg-gray-50">
       <p class="text-gray-400 text-center m-auto">লোড হচ্ছে...</p>
     </div>
-    <div id="chatInputArea" class="border-t border-gray-100 p-3 flex items-center gap-2 bg-white" style="display:none">
-      <label class="cursor-pointer p-2 rounded-full hover:bg-green-100 transition">
-        <input type="file" id="chatFileInput" class="hidden" accept="image/*,application/pdf" onchange="handleChatFile(event)">
-        <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
-      </label>
-      <input type="text" id="chatTextInput" placeholder="মেসেজ লিখুন..." class="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm focus:outline-none">
-      <button onclick="sendChatMessage()" id="sendChatBtn" class="btn-primary p-2.5 rounded-full flex items-center justify-center">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-      </button>
+    <!-- Chat Input Area (hidden by default) -->
+    <div id="chatInputArea" class="border-t border-gray-100 bg-white" style="display:none">
+      <!-- Reply Preview -->
+      <div id="replyPreview" class="px-3 py-2 bg-green-50 border-b border-gray-100 flex items-center justify-between hidden">
+        <div class="text-xs flex-1 truncate">
+          <span class="text-gray-500">Replying to </span>
+          <span id="replyPreviewText" class="font-medium"></span>
+        </div>
+        <button onclick="cancelReply()" class="text-red-500 hover:text-red-700 ml-2 flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <!-- File Preview -->
+      <div id="filePreview" class="px-4 py-2 text-sm text-gray-500 hidden"></div>
+      <!-- Emoji/Sticker Picker -->
+      <div id="emojiPicker" class="border-b border-gray-100 p-2 bg-gray-50 hidden" style="max-height:200px;overflow-y:auto;">
+        <div class="flex gap-1 mb-2">
+          <button onclick="switchEmojiTab('emoji')" id="emojiTabBtn" class="text-xs font-bold px-3 py-1 rounded bg-green-600 text-white">Emoji</button>
+          <button onclick="switchEmojiTab('sticker')" id="stickerTabBtn" class="text-xs font-bold px-3 py-1 rounded bg-gray-200 text-gray-700">Sticker</button>
+        </div>
+        <div id="emojiGrid" class="grid grid-cols-8 gap-1"></div>
+        <div id="stickerGrid" class="hidden grid grid-cols-5 gap-2"></div>
+      </div>
+      <!-- Input Row -->
+      <div class="p-3 flex items-center gap-2">
+        <label class="cursor-pointer p-2 rounded-full hover:bg-green-100 transition flex-shrink-0">
+          <input type="file" id="chatFileInput" class="hidden" accept="image/*,application/pdf" onchange="handleChatFile(event)">
+          <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>
+        </label>
+        <button onclick="toggleEmojiPicker()" class="p-2 rounded-full hover:bg-green-100 transition flex-shrink-0">
+          <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </button>
+        <input type="text" id="chatTextInput" placeholder="মেসেজ লিখুন..." class="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm focus:outline-none">
+        <button onclick="sendChatMessage()" id="sendChatBtn" class="btn-primary p-2.5 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+        </button>
+      </div>
     </div>
-    <div id="filePreview" class="px-4 py-2 text-sm text-gray-500 hidden"></div>
   </div>
 </section>
 
@@ -376,6 +418,7 @@
   </div>
 </footer>
 
+<!-- Admin Login Modal -->
 <div id="adminLoginModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in">
     <div class="flex items-center justify-between mb-4">
@@ -399,6 +442,40 @@
   </div>
 </div>
 
+<!-- Chat Unlock Modal -->
+<div id="chatUnlockModal" class="fixed inset-0 z-[85] modal-backdrop hidden items-center justify-center p-4">
+  <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in">
+    <div class="flex items-center justify-between mb-4">
+      <h4 class="text-xl font-bold text-green-800 flex items-center gap-2">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+        Chat Unlock
+      </h4>
+      <button onclick="closeModal('chatUnlockModal')" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="space-y-3">
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1">আপনার নাম সিলেক্ট করুন *</label>
+        <select id="unlockPlayerSelect" class="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-white">
+          <option value="">-- নাম সিলেক্ট করুন --</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1">পাসওয়ার্ড *</label>
+        <input id="unlockPassword" type="password" placeholder="আপনার পাসওয়ার্ড লিখুন" class="w-full px-4 py-2.5 rounded-lg border border-gray-200">
+      </div>
+      <p id="unlockError" class="text-red-600 text-sm hidden"></p>
+      <button onclick="unlockChat()" class="btn-primary w-full py-2.5 rounded-lg font-bold flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+        Unlock
+      </button>
+      <p class="text-xs text-gray-500 text-center">পাসওয়ার্ড পেতে অ্যাডমিনের সাথে যোগাযোগ করুন</p>
+    </div>
+  </div>
+</div>
+
+<!-- Player Modal -->
 <div id="playerModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between mb-4">
@@ -443,6 +520,11 @@
           <option value="inactive">Inactive</option>
         </select>
       </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1">Chat Password *</label>
+        <input id="playerChatPassword" type="text" required placeholder="যেমন: 1234" class="w-full px-4 py-2.5 rounded-lg border border-gray-200">
+        <p class="text-xs text-gray-500 mt-1">এই পাসওয়ার্ড দিয়ে খেলোয়াড় চ্যাট আনলক করবে</p>
+      </div>
       <div class="flex gap-2 pt-2">
         <button type="button" onclick="closeModal('playerModal')" class="flex-1 py-2.5 rounded-lg border border-gray-200 font-bold hover:bg-gray-50">বাতিল</button>
         <button type="submit" class="btn-primary flex-1 py-2.5 rounded-lg font-bold">সেভ করুন</button>
@@ -451,6 +533,7 @@
   </div>
 </div>
 
+<!-- Match Modal -->
 <div id="matchModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-2xl w-full slide-in max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between mb-4">
@@ -481,6 +564,7 @@
   </div>
 </div>
 
+<!-- Payment Modal -->
 <div id="paymentModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in">
     <div class="flex items-center justify-between mb-4">
@@ -498,6 +582,7 @@
   </div>
 </div>
 
+<!-- Notice Modal -->
 <div id="noticeModal" class="fixed inset-0 z-[80] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-md w-full slide-in">
     <div class="flex items-center justify-between mb-4">
@@ -514,6 +599,7 @@
   </div>
 </div>
 
+<!-- Confirm Modal -->
 <div id="confirmModal" class="fixed inset-0 z-[90] modal-backdrop hidden items-center justify-center p-4">
   <div class="bg-white rounded-2xl p-6 max-w-sm w-full slide-in">
     <h4 class="text-lg font-bold text-red-600 mb-2">নিশ্চিত মুছে ফেলবেন?</h4>
@@ -527,21 +613,29 @@
 
 <script>
 // ============================================
-// CONFIGURATION - এখানে আপনার দুটি Apps Script URL বসান
+// CONFIGURATION
 // ============================================
 const CONFIG = {
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw9U5DPxEVAv8ConqHNlpZQXh8AtieOAI3kU-M7TburgsFuXOQHG2117m0jTc6MtScc9w/exec',        // ← এখানে ১ম Apps Script URL বসান
-  FEEDBACK_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzHSbtPyMDwE5I1sErHGGnxaZQH044UPgkprjkmyAQCXkkVDqDo-GgRc_8C3FBViT05tQ/exec',    // ← এখানে Chat Apps Script URL বসান
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw9U5DPxEVAv8ConqHNlpZQXh8AtieOAI3kU-M7TburgsFuXOQHG2117m0jTc6MtScc9w/exec',
+  FEEDBACK_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzHSbtPyMDwE5I1sErHGGnxaZQH044UPgkprjkmyAQCXkkVDqDo-GgRc_8C3FBViT05tQ/exec',
   ADMIN_USER: 'admin',
   ADMIN_PASS: 'admin1116',
   USE_GOOGLE_SHEET: true
 };
 
+// Emoji & Sticker Data
+const EMOJI_DATA = {
+  emoji: ['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😉','😊','😍','🥰','😘','😋','😎','🤔','🤨','😐','😏','😒','🙄','😬','😢','😥','😭','😤','😠','🤬','🥵','🥶','😱','😨','😰','😓','🤗','🤭','🤫','🥳','🥺','🤓','🧐','👍','👎','👏','🙌','🙏','💪','✌️','🤞','🤟','🤘','👈','👉','👆','👇','☝️','❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💕','💞','💓','💗','💖','💘','💝','⚽','🏆','🥇','🥈','🥉','🏅','🎖️','🎯','🎮','🎲','🎉','🎊','🎈','🎁','🎀','🌟','⭐','✨','⚡','🔥','💥','☀️','🌈','❄️','💧','🌊','🎵','🎶','🎤','🎧','📱','💻','⌚','📷','🔔','💯'],
+  sticker: ['⚽','🏆','🔥','💯','🎉','😂','❤️','👍','💪','🥳','😎','🤔','😢','😡','🙏','👏','🤣','😍','🤗','🙌','✨','🌟','⚡','💥','🎈','🎊','🎁','👻','🤡','💀']
+};
+
 let state = {
   players: [], matches: [], payments: [], feedbacks: [], notices: [], chatMessages: [],
   isAdmin: false, currentFormation: '6vs6', bannerTheme: 'green', customFormationDefault: {},
-  selectedChatPlayer: null, chatAttachment: null, chatRefreshInterval: null,
-  dataRefreshInterval: null, isDataLoading: false, lastSaveTime: 0
+  chatAttachment: null, chatRefreshInterval: null,
+  dataRefreshInterval: null, isDataLoading: false, lastSaveTime: 0,
+  chatUnlocked: false, unlockedPlayerId: null, replyingTo: null,
+  currentEmojiTab: 'emoji'
 };
 
 // ============= UTILITY FUNCTIONS =============
@@ -691,7 +785,6 @@ const Store = {
       try { result = JSON.parse(text); } catch (e) { throw new Error('Server error: ' + text.substring(0, 200)); }
       if (!result.success) throw new Error(result.message || 'Save failed');
       
-      // ✅ Admin save করার পর নিজে দেখবে এবং অন্য পেজও দেখবে
       setTimeout(() => Store.load(), 500);
     } catch (err) {
       console.error('Save error:', err);
@@ -702,12 +795,12 @@ const Store = {
 
 function initSampleData() {
   const samplePlayers = [
-    { id: genId(), name: 'রাকিব হাসান', phone: '01711-123456', position: 'FWD', status: 'active', image: '', createdAt: new Date().toISOString() },
-    { id: genId(), name: 'সাকিব আহমেদ', phone: '01811-234567', position: 'MID', status: 'active', image: '', createdAt: new Date().toISOString() },
-    { id: genId(), name: 'তানভীর হোসেন', phone: '01911-345678', position: 'DEF', status: 'active', image: '', createdAt: new Date().toISOString() },
-    { id: genId(), name: 'নাফিস উদ্দিন', phone: '01611-456789', position: 'GK', status: 'active', image: '', createdAt: new Date().toISOString() },
-    { id: genId(), name: 'আরিফুল ইসলাম', phone: '01511-567890', position: 'FWD', status: 'active', image: '', createdAt: new Date().toISOString() },
-    { id: genId(), name: 'জাকির হোসেন', phone: '01711-678901', position: 'MID', status: 'active', image: '', createdAt: new Date().toISOString() }
+    { id: genId(), name: 'রাকিব হাসান', phone: '01711-123456', position: 'FWD', status: 'active', image: '', chatPassword: '1234', createdAt: new Date().toISOString() },
+    { id: genId(), name: 'সাকিব আহমেদ', phone: '01811-234567', position: 'MID', status: 'active', image: '', chatPassword: '2345', createdAt: new Date().toISOString() },
+    { id: genId(), name: 'তানভীর হোসেন', phone: '01911-345678', position: 'DEF', status: 'active', image: '', chatPassword: '3456', createdAt: new Date().toISOString() },
+    { id: genId(), name: 'নাফিস উদ্দিন', phone: '01611-456789', position: 'GK', status: 'active', image: '', chatPassword: '4567', createdAt: new Date().toISOString() },
+    { id: genId(), name: 'আরিফুল ইসলাম', phone: '01511-567890', position: 'FWD', status: 'active', image: '', chatPassword: '5678', createdAt: new Date().toISOString() },
+    { id: genId(), name: 'জাকির হোসেন', phone: '01711-678901', position: 'MID', status: 'active', image: '', chatPassword: '6789', createdAt: new Date().toISOString() }
   ];
   const today = new Date();
   const nextFriday = new Date(today);
@@ -755,7 +848,7 @@ function showAdminUI() {
   document.getElementById('addMatchBtn').style.display = 'flex';
   document.getElementById('addNoticeBtn').style.display = 'flex';
   document.getElementById('resetFormationBtn').style.display = 'flex';
-  document.getElementById('chatInputArea').style.display = 'flex';
+  updateChatAccess();
   renderPlayers();
   renderMatches();
   renderNotices();
@@ -766,11 +859,15 @@ function showAdminUI() {
 
 function adminLogout() {
   state.isAdmin = false;
+  state.chatUnlocked = false;
+  state.unlockedPlayerId = null;
+  state.replyingTo = null;
+  cancelReply();
   document.getElementById('addPlayerBtn').style.display = 'none';
   document.getElementById('addMatchBtn').style.display = 'none';
   document.getElementById('addNoticeBtn').style.display = 'none';
   document.getElementById('resetFormationBtn').style.display = 'none';
-  document.getElementById('chatInputArea').style.display = 'none';
+  updateChatAccess();
   const adminBtn = document.getElementById('adminBtn');
   adminBtn.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3zM3 5h18M3 12h6m-6 7h18"/></svg><span class="hidden sm:inline">Admin</span>`;
   adminBtn.onclick = openAdminLogin;
@@ -849,7 +946,292 @@ function renderNotices() {
   `).join('');
 }
 
-// ============= CHAT SYSTEM - FIXED =============
+// ============= CHAT UNLOCK SYSTEM =============
+function openChatUnlock() {
+  if (state.players.length === 0) {
+    showToast('কোনো খেলোয়াড় নেই। অ্যাডমিন প্রথমে খেলোয়াড় যোগ করুন।', 'error');
+    return;
+  }
+  const select = document.getElementById('unlockPlayerSelect');
+  select.innerHTML = `<option value="">-- নাম সিলেক্ট করুন --</option>` + 
+    state.players.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+  document.getElementById('unlockPassword').value = '';
+  document.getElementById('unlockError').classList.add('hidden');
+  openModal('chatUnlockModal');
+}
+
+function unlockChat() {
+  const playerId = document.getElementById('unlockPlayerSelect').value;
+  const password = document.getElementById('unlockPassword').value;
+  const errEl = document.getElementById('unlockError');
+  
+  if (!playerId) {
+    errEl.textContent = 'নাম সিলেক্ট করুন';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  const player = state.players.find(p => p.id === playerId);
+  if (!player) {
+    errEl.textContent = 'খেলোয়াড় পাওয়া যায়নি';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  if (!player.chatPassword) {
+    errEl.textContent = 'আপনার জন্য কোনো পাসওয়ার্ড সেট করা হয়নি। অ্যাডমিনের সাথে যোগাযোগ করুন।';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  if (password !== player.chatPassword) {
+    errEl.textContent = 'ভুল পাসওয়ার্ড';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  
+  state.chatUnlocked = true;
+  state.unlockedPlayerId = playerId;
+  closeModal('chatUnlockModal');
+  updateChatAccess();
+  markChatRead();
+  showToast(`চ্যাট আনলক হয়েছে। স্বাগতম ${player.name}!`, 'success');
+}
+
+function lockChat() {
+  state.chatUnlocked = false;
+  state.unlockedPlayerId = null;
+  state.replyingTo = null;
+  cancelReply();
+  toggleEmojiPicker(false);
+  updateChatAccess();
+  showToast('চ্যাট লক করা হয়েছে', 'info');
+}
+
+function updateChatAccess() {
+  const inputArea = document.getElementById('chatInputArea');
+  const statusArea = document.getElementById('chatStatusArea');
+  if (!inputArea || !statusArea) return;
+  
+  if (state.isAdmin) {
+    inputArea.style.display = 'block';
+    statusArea.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium">👑 Admin</span>
+        <button onclick="adminLogout()" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30 transition">Logout</button>
+      </div>`;
+  } else if (state.chatUnlocked && state.unlockedPlayerId) {
+    const player = state.players.find(p => p.id === state.unlockedPlayerId);
+    if (player) {
+      inputArea.style.display = 'block';
+      statusArea.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-medium">👤 ${escapeHtml(player.name)}</span>
+          <button onclick="lockChat()" class="text-xs bg-white/20 px-2 py-1 rounded hover:bg-white/30 transition">🔒 Lock</button>
+        </div>`;
+    } else {
+      state.chatUnlocked = false;
+      state.unlockedPlayerId = null;
+      inputArea.style.display = 'none';
+      statusArea.innerHTML = `<button onclick="openChatUnlock()" class="bg-white text-green-700 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+        Unlock Chat
+      </button>`;
+    }
+  } else {
+    inputArea.style.display = 'none';
+    statusArea.innerHTML = `<button onclick="openChatUnlock()" class="bg-white text-green-700 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+      Unlock Chat
+    </button>`;
+  }
+}
+
+// ============= NOTIFICATION SYSTEM =============
+function updateNotificationCount() {
+  const lastRead = parseInt(localStorage.getItem('chatLastReadTime') || '0');
+  let unread = 0;
+  state.chatMessages.forEach(msg => {
+    const msgTime = msg.timestamp ? new Date(msg.timestamp).getTime() : 0;
+    if (msgTime > lastRead) unread++;
+  });
+  
+  const badges = document.querySelectorAll('.chat-notif-badge');
+  badges.forEach(badge => {
+    if (unread > 0) {
+      badge.textContent = unread > 99 ? '99+' : unread;
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  });
+}
+
+function markChatRead() {
+  localStorage.setItem('chatLastReadTime', Date.now());
+  updateNotificationCount();
+}
+
+function isChatVisible() {
+  const chatSection = document.getElementById('chat');
+  if (!chatSection) return false;
+  const rect = chatSection.getBoundingClientRect();
+  return rect.top < window.innerHeight && rect.bottom > 0;
+}
+
+// ============= EMOJI & STICKER PICKER =============
+function toggleEmojiPicker(force) {
+  const picker = document.getElementById('emojiPicker');
+  if (!picker) return;
+  if (force === false) {
+    picker.classList.add('hidden');
+  } else if (force === true) {
+    picker.classList.remove('hidden');
+    renderEmojiGrid();
+  } else {
+    if (picker.classList.contains('hidden')) {
+      picker.classList.remove('hidden');
+      renderEmojiGrid();
+    } else {
+      picker.classList.add('hidden');
+    }
+  }
+}
+
+function switchEmojiTab(tab) {
+  state.currentEmojiTab = tab;
+  const emojiBtn = document.getElementById('emojiTabBtn');
+  const stickerBtn = document.getElementById('stickerTabBtn');
+  const emojiGrid = document.getElementById('emojiGrid');
+  const stickerGrid = document.getElementById('stickerGrid');
+  
+  if (tab === 'emoji') {
+    emojiBtn.className = 'text-xs font-bold px-3 py-1 rounded bg-green-600 text-white';
+    stickerBtn.className = 'text-xs font-bold px-3 py-1 rounded bg-gray-200 text-gray-700';
+    emojiGrid.classList.remove('hidden');
+    stickerGrid.classList.add('hidden');
+  } else {
+    emojiBtn.className = 'text-xs font-bold px-3 py-1 rounded bg-gray-200 text-gray-700';
+    stickerBtn.className = 'text-xs font-bold px-3 py-1 rounded bg-green-600 text-white';
+    emojiGrid.classList.add('hidden');
+    stickerGrid.classList.remove('hidden');
+  }
+  renderEmojiGrid();
+}
+
+function renderEmojiGrid() {
+  const emojiGrid = document.getElementById('emojiGrid');
+  const stickerGrid = document.getElementById('stickerGrid');
+  if (!emojiGrid || !stickerGrid) return;
+  
+  if (state.currentEmojiTab === 'emoji') {
+    emojiGrid.innerHTML = EMOJI_DATA.emoji.map(e => 
+      `<button onclick="insertEmoji('${e}')" class="text-xl p-1 rounded hover:bg-green-100 transition">${e}</button>`
+    ).join('');
+  }
+  if (state.currentEmojiTab === 'sticker') {
+    stickerGrid.innerHTML = EMOJI_DATA.sticker.map(s => 
+      `<button onclick="sendSticker('${s}')" class="text-3xl p-2 rounded hover:bg-green-100 transition">${s}</button>`
+    ).join('');
+  }
+}
+
+function insertEmoji(emoji) {
+  const input = document.getElementById('chatTextInput');
+  if (input) {
+    input.value += emoji;
+    input.focus();
+  }
+}
+
+async function sendSticker(sticker) {
+  if (!state.isAdmin && (!state.chatUnlocked || !state.unlockedPlayerId)) {
+    showToast('প্রথমে চ্যাট আনলক করুন', 'error');
+    return;
+  }
+
+  const sendBtn = document.getElementById('sendChatBtn');
+  if (sendBtn) sendBtn.disabled = true;
+
+  let msgData = { operation: 'sendChat', type: 'sticker', content: sticker };
+
+  if (state.isAdmin) {
+    msgData.sender = 'admin';
+    msgData.playerId = 'admin_id';
+    msgData.playerName = 'Admin';
+  } else {
+    const player = state.players.find(p => p.id === state.unlockedPlayerId);
+    if (!player) { if (sendBtn) sendBtn.disabled = false; return; }
+    msgData.sender = 'player';
+    msgData.playerId = player.id;
+    msgData.playerName = player.name;
+  }
+
+  if (state.replyingTo) {
+    msgData.replyTo = state.replyingTo;
+  }
+
+  try {
+    const res = await fetch(CONFIG.FEEDBACK_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(msgData),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow'
+    });
+    const resText = await res.text();
+    let data;
+    try { data = JSON.parse(resText); } catch (e) { throw new Error('Server error'); }
+    if (data.success) {
+      cancelReply();
+      toggleEmojiPicker(false);
+      loadChat();
+      showToast('স্টিকার পাঠানো হয়েছে', 'success');
+    } else {
+      throw new Error(data.message || 'Unknown error');
+    }
+  } catch (err) {
+    showToast('পাঠাতে সমস্যা: ' + err.message, 'error');
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+// ============= REPLY SYSTEM =============
+function startReply(msgId) {
+  const msg = state.chatMessages.find(m => m.id === msgId);
+  if (!msg) return;
+  
+  let preview = '';
+  if (msg.type === 'text') preview = msg.content.substring(0, 50);
+  else if (msg.type === 'image') preview = '📷 Photo';
+  else if (msg.type === 'file') preview = '📎 File';
+  else if (msg.type === 'sticker') preview = msg.content;
+  
+  state.replyingTo = {
+    id: msg.id,
+    sender: msg.sender,
+    senderName: msg.sender === 'admin' ? 'Admin' : (msg.playerName || 'Player'),
+    preview: preview
+  };
+  
+  const previewEl = document.getElementById('replyPreview');
+  const textEl = document.getElementById('replyPreviewText');
+  if (previewEl && textEl) {
+    textEl.innerHTML = `<span class="font-bold">${escapeHtml(state.replyingTo.senderName)}</span>: ${escapeHtml(preview)}`;
+    previewEl.classList.remove('hidden');
+  }
+  
+  const input = document.getElementById('chatTextInput');
+  if (input) input.focus();
+}
+
+function cancelReply() {
+  state.replyingTo = null;
+  const previewEl = document.getElementById('replyPreview');
+  if (previewEl) previewEl.classList.add('hidden');
+}
+
+// ============= CHAT SYSTEM =============
 async function loadChat() {
   try {
     const url = `${CONFIG.FEEDBACK_SCRIPT_URL}?action=getChat&t=${Date.now()}`;
@@ -859,35 +1241,21 @@ async function loadChat() {
     let data;
     try { data = JSON.parse(text); } catch (e) { throw new Error('Invalid response'); }
     if (data.success) {
-      // ✅ Sort messages by timestamp (chronological order)
       state.chatMessages = (data.messages || []).sort((a, b) => {
         return new Date(a.timestamp) - new Date(b.timestamp);
       });
       renderChat();
+      updateNotificationCount();
+      
+      if (isChatVisible() && (state.isAdmin || state.chatUnlocked)) {
+        markChatRead();
+      }
     }
   } catch (err) {
     const box = document.getElementById('chatBox');
     if (box && state.chatMessages.length === 0) {
       box.innerHTML = '<p class="text-gray-400 text-center m-auto">Chat লোড ব্যর্থ। পরে আবার চেষ্টা করুন।</p>';
     }
-  }
-}
-
-function updateChatPlayerDropdown() {
-  const sel = document.getElementById('chatPlayerSelect');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = `<option value="">Select Your Name</option>` + state.players.map(p => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
-  if (current) sel.value = current;
-}
-
-function selectChatPlayer(id) {
-  state.selectedChatPlayer = state.players.find(p => p.id === id);
-  const inputArea = document.getElementById('chatInputArea');
-  if (state.isAdmin) {
-    inputArea.style.display = 'flex';
-  } else {
-    inputArea.style.display = id ? 'flex' : 'none';
   }
 }
 
@@ -931,21 +1299,31 @@ async function sendChatMessage() {
   const sendBtn = document.getElementById('sendChatBtn');
   sendBtn.disabled = true;
 
-  let msgData = { operation: 'sendChat', sender: 'player' };
+  let msgData = { operation: 'sendChat' };
 
-  // ✅ BUG FIXED: Admin এবং Player দুটোর জন্য আলাদা লজিক
   if (state.isAdmin) {
     msgData.sender = 'admin';
     msgData.playerId = 'admin_id';
     msgData.playerName = 'Admin';
   } else {
-    if (!state.selectedChatPlayer) {
-      showToast('আপনার নাম সিলেক্ট করুন', 'error');
+    if (!state.chatUnlocked || !state.unlockedPlayerId) {
+      showToast('প্রথমে চ্যাট আনলক করুন', 'error');
       sendBtn.disabled = false;
       return;
     }
-    msgData.playerId = state.selectedChatPlayer.id;
-    msgData.playerName = state.selectedChatPlayer.name;
+    const player = state.players.find(p => p.id === state.unlockedPlayerId);
+    if (!player) {
+      showToast('খেলোয়াড় পাওয়া যায়নি', 'error');
+      sendBtn.disabled = false;
+      return;
+    }
+    msgData.sender = 'player';
+    msgData.playerId = player.id;
+    msgData.playerName = player.name;
+  }
+
+  if (state.replyingTo) {
+    msgData.replyTo = state.replyingTo;
   }
 
   if (attachment) {
@@ -971,6 +1349,8 @@ async function sendChatMessage() {
       state.chatAttachment = null;
       document.getElementById('filePreview').classList.add('hidden');
       document.getElementById('chatFileInput').value = '';
+      cancelReply();
+      toggleEmojiPicker(false);
       loadChat();
       showToast('মেসেজ পাঠানো হয়েছে', 'success');
     } else {
@@ -1012,36 +1392,60 @@ function renderChat() {
     box.innerHTML = '<p class="text-gray-400 text-center m-auto">কোনো মেসেজ নেই। প্রথম মেসেজ পাঠান!</p>';
     return;
   }
-  // ✅ BUG FIXED: isAdmin variable আগে define করা হয়েছে এবং সঠিকভাবে ব্যবহার করা হয়েছে
+  
+  const canChat = state.isAdmin || (state.chatUnlocked && state.unlockedPlayerId);
+  
   box.innerHTML = state.chatMessages.map(msg => {
     const isAdmin = msg.sender === 'admin';
     let contentHtml = '';
+    
+    let replyHtml = '';
+    if (msg.replyTo) {
+      const replySender = msg.replyTo.sender === 'admin' ? 'Admin' : escapeHtml(msg.replyTo.senderName || 'Player');
+      replyHtml = `
+        <div class="text-xs bg-black/10 rounded p-1.5 mb-1 border-l-2 ${isAdmin ? 'border-yellow-300' : 'border-green-400'}">
+          <span class="font-bold">${replySender}</span>: ${escapeHtml(msg.replyTo.preview || '')}
+        </div>
+      `;
+    }
+    
     if (msg.type === 'image') {
       contentHtml = `<img src="${msg.content}" class="rounded-lg max-w-full h-auto max-h-48 object-cover mb-1" alt="image">`;
     } else if (msg.type === 'file') {
       contentHtml = `<a href="${msg.content}" download="file" class="flex items-center gap-2 text-blue-600 underline text-sm mb-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> ফাইল ডাউনলোড করুন</a>`;
+    } else if (msg.type === 'sticker') {
+      contentHtml = `<p class="text-5xl text-center">${msg.content}</p>`;
     } else {
       contentHtml = `<p class="text-sm">${escapeHtml(msg.content)}</p>`;
     }
-    // ✅ FIXED: sender label - আগে একটি bug ছিল যেখানে isAdmin দুইবার check হচ্ছিল
+    
     let senderLabel;
     if (isAdmin) {
       senderLabel = '<span class="badge bg-yellow-400 text-yellow-900 text-[10px]">Admin</span>';
     } else {
       senderLabel = `<span class="text-[10px] font-bold text-green-700">${escapeHtml(msg.playerName || 'Player')}</span>`;
     }
+    
     const deleteBtn = state.isAdmin
-      ? `<button onclick="deleteChatMessage('${msg.id}')" class="ml-2 text-red-300 hover:text-red-500"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>`
+      ? `<button onclick="deleteChatMessage('${msg.id}')" class="ml-1 text-red-300 hover:text-red-500" title="Delete"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg></button>`
       : '';
+    
+    const replyBtn = canChat
+      ? `<button onclick="startReply('${msg.id}')" class="ml-1 text-gray-400 hover:text-green-600" title="Reply"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg></button>`
+      : '';
+    
     const timeColor = isAdmin ? 'text-green-100' : 'text-gray-400';
     const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+    
     return `
       <div class="chat-bubble ${isAdmin ? 'chat-admin' : 'chat-player'}">
-        <div class="flex items-center gap-2 mb-1">
+        <div class="flex items-center gap-1 mb-1">
           ${senderLabel}
           <span class="text-[10px] ${timeColor}">${timeStr}</span>
+          ${replyBtn}
           ${deleteBtn}
         </div>
+        ${replyHtml}
         ${contentHtml}
       </div>
     `;
@@ -1064,6 +1468,7 @@ function openPlayerModal(id = null) {
       document.getElementById('playerPosition').value = p.position || 'MID';
       document.getElementById('playerStatus').value = p.status || 'active';
       document.getElementById('playerImage').value = p.image || '';
+      document.getElementById('playerChatPassword').value = p.chatPassword || '';
       if (p.image) document.getElementById('playerImgPreview').innerHTML = `<img src="${p.image}" class="w-full h-full object-cover">`;
       document.getElementById('playerModalTitle').textContent = 'খেলোয়াড় এডিট করুন';
     }
@@ -1100,6 +1505,7 @@ async function savePlayer(e) {
     position: document.getElementById('playerPosition').value,
     status: document.getElementById('playerStatus').value,
     image: document.getElementById('playerImage').value,
+    chatPassword: document.getElementById('playerChatPassword').value.trim(),
     createdAt: new Date().toISOString()
   };
   if (id) {
@@ -1785,7 +2191,7 @@ async function downloadMatchImage(matchId) {
 // ============= EXCEL =============
 function exportPlayersExcel() {
   if (state.players.length === 0) return showToast('কোনো খেলোয়াড় নেই', 'error');
-  const data = state.players.map(p => ({ 'নাম': p.name, 'ফোন': p.phone || '', 'পজিশন': p.position || '', 'স্ট্যাটাস': p.status || '' }));
+  const data = state.players.map(p => ({ 'নাম': p.name, 'ফোন': p.phone || '', 'পজিশন': p.position || '', 'স্ট্যাটাস': p.status || '', 'Chat Password': p.chatPassword || '' }));
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Players');
@@ -1885,7 +2291,8 @@ function renderAll() {
   updateDropdowns();
   updateBanner();
   renderNotices();
-  updateChatPlayerDropdown();
+  updateChatAccess();
+  updateNotificationCount();
 }
 
 function scrollToSection(id) {
@@ -1906,6 +2313,11 @@ function updateActiveNav() {
       link.classList.remove('active');
       if (link.getAttribute('href') === '#' + current) link.classList.add('active');
     });
+    
+    // Mark chat as read when visible
+    if (isChatVisible() && (state.isAdmin || state.chatUnlocked)) {
+      markChatRead();
+    }
   });
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -1935,9 +2347,9 @@ async function init() {
   document.getElementById('loginPass').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
   document.getElementById('loginUser').addEventListener('keypress', (e) => { if (e.key === 'Enter') adminLogin(); });
 
-  const chatPlayerSelect = document.getElementById('chatPlayerSelect');
-  if (chatPlayerSelect) {
-    chatPlayerSelect.addEventListener('change', (e) => selectChatPlayer(e.target.value));
+  const unlockPass = document.getElementById('unlockPassword');
+  if (unlockPass) {
+    unlockPass.addEventListener('keypress', (e) => { if (e.key === 'Enter') unlockChat(); });
   }
 
   const chatTextInput = document.getElementById('chatTextInput');
@@ -1955,12 +2367,10 @@ async function init() {
     modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal.id); });
   });
 
-  // ✅ Auto-refresh data every 10 seconds (faster - যাতে player add করলে দ্রুত দুই page এ দেখা যায়)
   state.dataRefreshInterval = setInterval(() => {
     if (!state.isDataLoading) Store.load();
   }, 10000);
   
-  // ✅ Auto-refresh chat every 5 seconds (দ্রুত update এর জন্য)
   state.chatRefreshInterval = setInterval(loadChat, 5000);
 }
 
